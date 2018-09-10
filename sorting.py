@@ -2,11 +2,13 @@ import csv
 import sys
 import array
 import time
+import random
 
 #categories = []
 users = [] #all of the users with all of their information 
 qualifications = [] #list of all qualifications entered 
 EXIT = -1
+catNums = [0]
 
 def readMyFile(filename):
 	global users
@@ -110,7 +112,7 @@ def compare_val_helper(isUnder, val, catNum):
 				 newList.append(pers)
 	return newList
 
-def compar_val(catNum, category):
+def compar_val(catNum, category): #selects within value comparison categories
 	global users, qualifications
 	val = input("enter the value you would like to compare. Remember that any hit that has this exact value will not qualify: ")
 	isUnder = check_under_or_over(val)
@@ -131,7 +133,7 @@ def select_helper(qualifs, catNum):
 				temp.append(pers)
 	return temp
 
-def selection(catNum, category):
+def selection(catNum, category): #selects within characteristic selection categories
 	global users, qualifications
 	arr = []
 
@@ -144,14 +146,53 @@ def selection(catNum, category):
 	users = select_helper(arr, catNum)
 	update_users(len(users))
  
-def update_users(sz):
+def update_users(sz): #how many qualifying participants left
  	print("there are " + str(sz) + " qualifying participants left.")
+
+def wrap_helper_selection_num(sz): #how many users to select from list
+	num = sz + 1
+	while(num > sz):
+		num = input("Enter the number of qualifying workers you would like to select: ")
+		if(num > sz): 
+			print("Please enter a value equal to or less than " + str(sz) + ": ")
+	return num
+
+def wrap_helper_random_selection(num):
+	global users, qualifications
+	rand_smpl = [ users[i] for i in sorted(random.sample(xrange(len(users)), num)) ]
+	return rand_smpl
+
+def wrap_helper_del(subset, cat_sz):
+	global catNums
+	arr = []
+	for row in subset: 
+		arr_row = []
+		for i in range (cat_sz):
+			if i in catNums:
+				arr_row.append(row[i])
+		arr.append(arr_row)
+	return arr
+
+def wrap_up(cat_sz):
+	global users, qualifications
+	print("all qualifications entered: ")
+	print(qualifications)
+	print(users)
+	sz = len(users)
+	update_users(sz)
+	num = wrap_helper_selection_num(sz)
+	subset = wrap_helper_random_selection(num)
+	print("Returning " + str(num) + "randomly selected qualified workers.")
+	return wrap_helper_del(subset, cat_sz)
+
+
 
 def main():
 	#qualifications: a list that states all the qualifications entered by the user
 	#users: a list of all the users that qualified, contains all of their characteristics
 	#categories: a list of all the categories available
 	#catNums: a list of all the category numbers
+
 	global users, qualifications
 	filename = '/Users/ingridyfan/Documents/Stanford/SocLab/sorting project/testingcsv.csv' #TODO: get people to manually enter filename
 	categories = [] #all of the categories
@@ -181,47 +222,42 @@ def main():
 		print("all qualifications entered so far: ")
 		print(qualifications)
 		catNum = input("enter any number to continue or -1 to exit: ")
-		
-	print("all qualifications entered: ")
-	print(qualifications)
-	getNewList(catNums)
-	#TODO: print out all relevant columns instead of just IDs
+	qualified = wrap_up(len(categories))
+	print(qualified)
 
 
 
+#to csv
 
-	#TODO: ARRAY OF IDS TO USERS 
+	csvfile = "/Users/ingridyfan/Documents/Stanford/SocLab/sorting project/export sorting project.csv"
 
+	#Assuming res is a flat list
+	with open(csvfile, "w") as output:
+   		writer = csv.writer(output, lineterminator='\n')
+    	for val in qualified:
+        	writer.writerow([val])    
 
-	#TODO: ARRAY OF MULTIPLE SELECTIONS 
+	#Assuming res is a list of lists
+	with open(csvfile, "w") as output:
+		writer = csv.writer(output, lineterminator='\n')
+    	writer.writerows(qualified)
 
 	#print(pets)
-
-	#have a whiel loop that takes in category and qualification(s)
-	#only break out of the while loop when the person dictates that they are done submitting categories 
-		#SPECIAL INSTRUCTIONS IF ITS DATES
 	#after breaking out of while loop, ask which categories that want (MID? etc.)
 		#return a list of whatever they ask for 
 
 		#export into a csv 
-		#spit out how many we added from that qualification 
 
 
 main()
-
 
 #readMyFile('/Users/ingridyfan/Documents/Stanford/SocLab/sorting project/testingcsv.csv')
 
 
 #i want a subset -- give all or a random list of ___ people 
 
-
-#TODO: HAVE THE PERSON MANUALLY INPUT WHAT KIND OF COMPARISON IT IS
-#TODO: HAVE THE PERSON BE ABLE TO HAVE MULTIPLE QUALIFICATIONS WITHIN EACH CATEGORY BEFORE OVERRIDING THE USER LIST
-
-#type of columns: date comparison, value comparison, specific qualification/characteristic
-
-
+#TO_DO: BE ABLE TO AUTOMATICALLY FIND THE M_TURK ID COLUMN WITHOUT HAVING TO HARD CODE IT IN
+#TO_DO: BE ABLE TO INPUT A CHARACTERISTIC THAT THEY ~DONT~ WANT IN THE LIST
 
 
 

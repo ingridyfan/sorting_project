@@ -8,7 +8,8 @@ import random
 users = [] #all of the users with all of their information 
 qualifications = [] #list of all qualifications entered 
 EXIT = -1
-catNums = [0]
+MID_NUM = 1 #THIS SHOULD BE UPDATED IF THE CSV IS UPDATED
+catNums = [MID_NUM]
 
 def readMyFile(filename):
 	global users
@@ -25,12 +26,12 @@ def getCatIndex(categories, category):
 	return categories.index(category)
 
 def printCategories(categories):
-	print("Below are all categories and their corresponding numbers: ")
+	print("\nBelow are all categories and their corresponding numbers: ")
 	for inx, cat in enumerate(categories):
 		print(inx, cat)
 
 def getDate(): 
-	print("please enter the date (in mm/dd/yy format) you would like to compare. Remember that any members that have that exact date will not qualify.")
+	print("\nPlease enter the date (in mm/dd/yy format) you would like to compare. Remember that any members that have that exact date will not qualify.")
 	month = input("month (mm): ")
 	day = input("day (dd): ")
 	year = input("year (yy): ")
@@ -39,13 +40,13 @@ def getDate():
 
 def checkBeforeOrAfter(inputDate): #checks whether they want all the dates before or after the date they inputed
 	while(True): 
-		beforeInput = input("if you would like all users BEFORE " + inputDate + ", please enter 1. If you would like all users AFTER, please enter 0: ")
+		beforeInput = input("If you would like all users BEFORE " + inputDate + ", please enter 1. If you would like all users AFTER, please enter 0: ")
 		if(beforeInput == 1):
 			return True
 		elif(beforeInput == 0):
 			return False
 		else:
-			print("please enter a valid input") #try/catch
+			print("\n[ERROR] Please enter a valid input") #try/catch
 	return True
 
 def compare_date_helper(beforeBool, date, catNum):
@@ -66,7 +67,7 @@ def compare_date_helper(beforeBool, date, catNum):
 
 def getIDs(): #TODO: automatically give list in a csv format 
 	global users
-	print("printing out a list of IDs that have matched your qualifications...")
+	print("\nPrinting out a list of IDs that have matched your qualifications...")
 	for user in enumerate(users):
 		cur = user[1]
 		print(cur[0])
@@ -86,13 +87,13 @@ def compar_date(catNum, category):
 	update_users(len(users))
 
 def check_under_or_over(val):
-	isUnder = input("if you would like all users under " + str(val) + ", please enter 1. If you would like all users over, please enter 0: ")
+	isUnder = input("\nIf you would like all users under " + str(val) + ", please enter 1. If you would like all users over, please enter 0: ")
 	if(isUnder == 1):
 		return True
 	elif(isUnder == 0):
 		return False
 	else:
-		print("please enter a valid input") #try/catch
+		print("\n[ERROR] Please enter a valid input") #try/catch
 	return True
 
 def compare_val_helper(isUnder, val, catNum):
@@ -103,7 +104,7 @@ def compare_val_helper(isUnder, val, catNum):
 			curVal = int(pers[catNum])
 			print(curVal)
 			if(curVal < val): 
-				print("reached")
+				#print("reached")
 				newList.append(pers)
 	else:
 		for inx, pers in enumerate(users):
@@ -114,7 +115,7 @@ def compare_val_helper(isUnder, val, catNum):
 
 def compar_val(catNum, category): #selects within value comparison categories
 	global users, qualifications
-	val = input("enter the value you would like to compare. Remember that any hit that has this exact value will not qualify: ")
+	val = input("Enter the value you would like to compare. Remember that any hit that has this exact value will not qualify: ")
 	isUnder = check_under_or_over(val)
 	if(isUnder):
 		qualifications.append(category + " under " + str(val)) #TODO: adapt for all types with dates
@@ -137,24 +138,35 @@ def selection(catNum, category): #selects within characteristic selection catego
 	global users, qualifications
 	arr = []
 
-	print("Please enter either one or more qualifications corresponding to the selected category one at a time. Note that all qualifications within this category must be entered within this round.")
-	qualification = raw_input("enter a qualification desired: ")
+	print("\nPlease enter either one or more qualifications corresponding to the selected category one at a time. Note that all qualifications within this category must be entered within this round.")
+	qualification = raw_input("\nenter a qualification desired: ")
 	while(qualification != ""):
 		arr.append(qualification)
 		qualifications.append(category + ": " + qualification)
-		qualification = raw_input("enter another qualification desired or press enter to continue: ")
+		qualification = raw_input("\nenter another qualification desired or press enter to continue: ")
 	users = select_helper(arr, catNum)
 	update_users(len(users))
  
+def comp_director(comp_val, catNum, category):
+	if(comp_val == 0): 
+		compar_val(catNum, category)
+	elif(comp_val == 1): 
+		compar_date(catNum, category)
+	elif(comp_val == 2):
+		selection(catNum, category)
+
 def update_users(sz): #how many qualifying participants left
- 	print("there are " + str(sz) + " qualifying participants left.")
+	if(sz == 0): 
+		print("\n[ERROR] Oh no! You have no qualifying participants left.")
+		return
+ 	print("\nthere are " + str(sz) + " qualifying participants left.")
 
 def wrap_helper_selection_num(sz): #how many users to select from list
 	num = sz + 1
 	while(num > sz):
 		num = input("Enter the number of qualifying workers you would like to select: ")
 		if(num > sz): 
-			print("Please enter a value equal to or less than " + str(sz) + ": ")
+			print("\n[ERROR] Please enter a value equal to or less than " + str(sz) + ": ")
 	return num
 
 def wrap_helper_random_selection(num):
@@ -175,16 +187,20 @@ def wrap_helper_del(subset, cat_sz):
 
 def wrap_up(cat_sz):
 	global users, qualifications
-	print("all qualifications entered: ")
+	print("\nall qualifications entered: ")
 	print(qualifications)
-	print(users)
+	#print(users)
 	sz = len(users)
 	update_users(sz)
 	num = wrap_helper_selection_num(sz)
 	subset = wrap_helper_random_selection(num)
-	print("Returning " + str(num) + "randomly selected qualified workers.")
+	print("\nReturning " + str(num) + " randomly selected qualified workers.")
 	return wrap_helper_del(subset, cat_sz)
 
+def invalid_input(val, all_vals): 
+	if(val > (all_vals - 1)): 
+		return True
+	return False
 
 
 def main():
@@ -194,60 +210,78 @@ def main():
 	#catNums: a list of all the category numbers
 
 	global users, qualifications
-	filename = '/Users/ingridyfan/Documents/Stanford/SocLab/sorting project/testingcsv.csv' #TODO: get people to manually enter filename
+
+	#filename = '/Users/ingridyfan/Documents/Stanford/SocLab/sorting project/testingcsv.csv' 
+
+	#filename = 'workersCSV.csv' #[EDIT INPUT FILENAME HERE]
+
+	filename = sys.argv[1]
 	categories = [] #all of the categories
 	users, categories = readMyFile(filename) #creates an array of the entire sheet
 	compare = ["value comparison", "date comparison", "characteristic selection"]
 
+
 	catNum = 0
-	while(catNum != EXIT):
+	while(catNum != EXIT): #choose category within this loop
 		printCategories(categories) #lists categories and indices for user to read
-		catNum = input("enter the category number you wish to select or enter -1 to exit: ")
+		catNum = input("Enter the category number you wish to select OR enter -1 to exit: ")
 		if(catNum == -1): 
 			break
+		elif(invalid_input(catNum, len(categories))): 
+			print("\n[ERROR] Please enter a valid category number!")
+			catNum = 0
+			continue
 		else:
 			catNums.append(catNum)
-		#TODO: if input is invalid? try/catch?
+			print("\nYou have selected the category: " + categories[catNum])
+		
 		printCategories(compare)
-		comparType = input("enter the comparison type appropriate for this category or enter -1 to choose another category: ")
 
-		if(comparType != -1):
-			if(comparType == 0): 
-				compar_val(catNum, categories[catNum])
-			elif(comparType == 1): 
-				compar_date(catNum, categories[catNum])
-			elif(comparType == 2):
-				selection(catNum, categories[catNum])
-			#TODO: if input is invalid?
-		print("all qualifications entered so far: ")
+		comparType = 0
+		while(comparType != -1):
+			comparType = input("Enter the comparison type appropriate for the " + categories[catNum] + " category OR enter -1 to choose another category: ")
+			if(comparType != -1): #directs to appropriate type of comparison
+				if(invalid_input(comparType, len(compare))):
+					print("\n[ERROR] Please enter a valid number corresponding to a comparison type!")
+					comparType = 0
+					continue
+				else:
+					comp_director(comparType, catNum, categories[catNum])
+					break
+
+		print("\nAll qualifications entered so far: ")
 		print(qualifications)
 		catNum = input("enter any number to continue or -1 to exit: ")
 	qualified = wrap_up(len(categories))
 	print(qualified)
 
-
-
 #to csv
 
-	csvfile = "/Users/ingridyfan/Documents/Stanford/SocLab/sorting project/export sorting project.csv"
+	#csvfile = "/Users/ingridyfan/Documents/Stanford/SocLab/sorting project/qualifiedWorkers.csv" #this is the full path name
+	
+	#csvfile = 'qualifiedWorkers.csv' #[UNCOMMENT THIS TO EDIT THE SCRIPT]
+	csvfile = sys.argv[2] 
 
-	#Assuming res is a flat list
-	with open(csvfile, "w") as output:
-   		writer = csv.writer(output, lineterminator='\n')
-    	for val in qualified:
-        	writer.writerow([val])    
 
-	#Assuming res is a list of lists
-	with open(csvfile, "w") as output:
-		writer = csv.writer(output, lineterminator='\n')
-    	writer.writerows(qualified)
+	# # #Assuming res is a flat list
+	# with open(csvfile, "w") as output:
+ #    		writer = csv.writer(output, lineterminator='\n')
+ #     	for val in qualified:
+ #         	writer.writerow([val])    
 
-	#print(pets)
-	#after breaking out of while loop, ask which categories that want (MID? etc.)
-		#return a list of whatever they ask for 
+	# #Assuming res is a list of lists
+	# with open(csvfile, "w") as output:
+	#  	writer = csv.writer(output, lineterminator='\n')
+ #     	writer.writerows(qualified)
 
-		#export into a csv 
+	 	#export into a csv 
 
+	finalCats = [categories[x] for x in catNums] #gets the row of all relevant categories
+	finalCats.sort()
+	with open(csvfile, "wb") as f:
+    		writer = csv.writer(f)
+    		writer.writerows([finalCats])
+    		writer.writerows(qualified)
 
 main()
 
@@ -256,8 +290,11 @@ main()
 
 #i want a subset -- give all or a random list of ___ people 
 
+#TO_DO: take in arguments that become the inport and export files
 #TO_DO: BE ABLE TO AUTOMATICALLY FIND THE M_TURK ID COLUMN WITHOUT HAVING TO HARD CODE IT IN
 #TO_DO: BE ABLE TO INPUT A CHARACTERISTIC THAT THEY ~DONT~ WANT IN THE LIST
+#T0_DO: BE ABLE TO HAVE A SENTINAL VALUE THAT THEY CAN ENTER TO SELECT ALL PARTICIPANTS LEFT IF THEY MESSED UP
+#TO_DO: HOW TO BACK UP?
 
 
 

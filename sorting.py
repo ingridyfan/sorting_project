@@ -214,9 +214,8 @@ def toCSV(categories, catNum, qualified):
 
 	#csvfile = "/Users/ingridyfan/Documents/Stanford/SocLab/sorting project/qualifiedWorkers.csv" #this is the full path name
 	
-	csvfile = 'qualifiedWorkers.csv' #[UNCOMMENT THIS TO EDIT THE SCRIPT]
-
-	#csvfile = sys.argv[2] 
+	#csvfile = 'qualifiedWorkers.csv' #[UNCOMMENT THIS TO EDIT THE SCRIPT]
+	csvfile = sys.argv[2] 
 
 	catNums.sort()
 	finalCats = [categories[x] for x in catNums] #gets the row of all relevant categories
@@ -225,8 +224,25 @@ def toCSV(categories, catNum, qualified):
     		writer.writerows([finalCats])
     		writer.writerows(qualified)
 
+	print "Check the file " + csvfile +" for a csv of your qualified workers!"
 
 
+def overwrite(filename, qualified):
+	midList = [elem[0] for elem in qualified]
+
+	now = datetime.datetime.now()
+	date = now.strftime("%m/%d/%y")
+	data = pd.read_csv(filename)
+
+
+	for idx, mid in enumerate(data['MID']):
+		if data.ix[idx, 'MID'] in midList:
+			data.ix[idx, 'Invited'] = date
+
+	newOriginal = "new" + filename
+	data.to_csv(newOriginal)
+
+	print "Check the file " + newOriginal + " for a csv of your updated workers csv."
 
 
 
@@ -239,9 +255,9 @@ def main():
 
 	#filename = '/Users/ingridyfan/Documents/Stanford/SocLab/sorting project/testingcsv.csv' 
 
-	filename = 'workersCSV.csv' #[EDIT INPUT FILENAME HERE]
+	#filename = 'workersCSV.csv' #[EDIT INPUT FILENAME HERE]
+	filename = sys.argv[1]
 
-	#filename = sys.argv[1]
 	categories = [] #all of the categories
 	users, categories = readMyFile(filename) #creates an array of the entire sheet
 	compare = ["value comparison", "date comparison", "characteristic selection"]
@@ -289,26 +305,27 @@ def main():
 	print(qualified)
 
 	toCSV(categories, catNums, qualified)
+	overwrite(filename, qualified)
 
 #overwrite csv
-	midList = [elem[0] for elem in qualified]
-	print midList
+	# midList = [elem[0] for elem in qualified]
+	# print midList
 
-	now = datetime.datetime.now()
-	date = now.strftime("%m/%d/%y")
-	filename = 'workersCSV.csv'
-	data = pd.read_csv(filename)
+	# now = datetime.datetime.now()
+	# date = now.strftime("%m/%d/%y")
+	# filename = 'workersCSV.csv'
+	# data = pd.read_csv(filename)
 
 
-	for idx, mid in enumerate(data['MID']):
-		if data.ix[idx, 'MID'] in midList:
-			print "reached"
-			data.ix[idx, 'Invited'] = date
+	# for idx, mid in enumerate(data['MID']):
+	# 	if data.ix[idx, 'MID'] in midList:
+	# 		print "reached"
+	# 		data.ix[idx, 'Invited'] = date
 
-	print data['Invited']
+	# print data['Invited']
 
-	newOriginal = "new" + filename
-	data.to_csv(newOriginal)
+	# newOriginal = "new" + filename
+	# data.to_csv(newOriginal)
 
 
 main()

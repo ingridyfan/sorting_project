@@ -3,6 +3,8 @@ import sys
 import array
 import time
 import random
+import pandas as pd
+import datetime
 
 #categories = []
 users = [] #all of the users with all of their information 
@@ -177,7 +179,7 @@ def wrap_helper_random_selection(num):
 def wrap_helper_del(subset, cat_sz):
 	global catNums
 	arr = []
-	for row in subset: 
+	for idx, row in enumerate(subset): 
 		arr_row = []
 		for i in range (cat_sz):
 			if i in catNums:
@@ -202,20 +204,44 @@ def invalid_input(val, all_vals):
 		return True
 	return False
 
+# def updateInvitedDate(filename, qualified):
+# 	#parse in line by line
+# 	#edit invited for each person in qualified
+# 	#write it to a new file
+# 	#
+def toCSV(categories, catNum, qualified):
+	#to csv
+
+	#csvfile = "/Users/ingridyfan/Documents/Stanford/SocLab/sorting project/qualifiedWorkers.csv" #this is the full path name
+	
+	csvfile = 'qualifiedWorkers.csv' #[UNCOMMENT THIS TO EDIT THE SCRIPT]
+
+	#csvfile = sys.argv[2] 
+
+	catNums.sort()
+	finalCats = [categories[x] for x in catNums] #gets the row of all relevant categories
+	with open(csvfile, "wb") as f:
+    		writer = csv.writer(f)
+    		writer.writerows([finalCats])
+    		writer.writerows(qualified)
+
+
+
+
+
 
 def main():
 	#qualifications: a list that states all the qualifications entered by the user
 	#users: a list of all the users that qualified, contains all of their characteristics
 	#categories: a list of all the categories available
 	#catNums: a list of all the category numbers
-
 	global users, qualifications
 
 	#filename = '/Users/ingridyfan/Documents/Stanford/SocLab/sorting project/testingcsv.csv' 
 
-	#filename = 'workersCSV.csv' #[EDIT INPUT FILENAME HERE]
+	filename = 'workersCSV.csv' #[EDIT INPUT FILENAME HERE]
 
-	filename = sys.argv[1]
+	#filename = sys.argv[1]
 	categories = [] #all of the categories
 	users, categories = readMyFile(filename) #creates an array of the entire sheet
 	compare = ["value comparison", "date comparison", "characteristic selection"]
@@ -249,46 +275,43 @@ def main():
 					comp_director(comparType, catNum, categories[catNum])
 					break
 
+		if len(users) == 0: 
+			print "No users qualify. Ending program."
+			return
 		print("\nAll qualifications entered so far: ")
 		print(qualifications)
-		catNum = input("enter any number to continue or -1 to exit: ")
+
+		catNum = input("enter any number to continue or -1 to exit: ") #ERROR CHECK THAT A NUMBER WAS INPUTTED
+
+
+
 	qualified = wrap_up(len(categories))
 	print(qualified)
 
-#to csv
+	toCSV(categories, catNums, qualified)
 
-	#csvfile = "/Users/ingridyfan/Documents/Stanford/SocLab/sorting project/qualifiedWorkers.csv" #this is the full path name
-	
-	#csvfile = 'qualifiedWorkers.csv' #[UNCOMMENT THIS TO EDIT THE SCRIPT]
-	csvfile = sys.argv[2] 
+#overwrite csv
+	midList = [elem[0] for elem in qualified]
+	print midList
+
+	now = datetime.datetime.now()
+	date = now.strftime("%m/%d/%y")
+	filename = 'workersCSV.csv'
+	data = pd.read_csv(filename)
 
 
-	# # #Assuming res is a flat list
-	# with open(csvfile, "w") as output:
- #    		writer = csv.writer(output, lineterminator='\n')
- #     	for val in qualified:
- #         	writer.writerow([val])    
+	for idx, mid in enumerate(data['MID']):
+		if data.ix[idx, 'MID'] in midList:
+			print "reached"
+			data.ix[idx, 'Invited'] = date
 
-	# #Assuming res is a list of lists
-	# with open(csvfile, "w") as output:
-	#  	writer = csv.writer(output, lineterminator='\n')
- #     	writer.writerows(qualified)
+	print data['Invited']
 
-	 	#export into a csv 
+	newOriginal = "new" + filename
+	data.to_csv(newOriginal)
 
-	finalCats = [categories[x] for x in catNums] #gets the row of all relevant categories
-	finalCats.sort()
-	with open(csvfile, "wb") as f:
-    		writer = csv.writer(f)
-    		writer.writerows([finalCats])
-    		writer.writerows(qualified)
 
 main()
-
-#readMyFile('/Users/ingridyfan/Documents/Stanford/SocLab/sorting project/testingcsv.csv')
-
-
-#i want a subset -- give all or a random list of ___ people 
 
 #TO_DO: take in arguments that become the inport and export files
 #TO_DO: BE ABLE TO AUTOMATICALLY FIND THE M_TURK ID COLUMN WITHOUT HAVING TO HARD CODE IT IN

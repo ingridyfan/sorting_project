@@ -224,7 +224,7 @@ def toCSV(categories, catNum, qualified):
     		writer.writerows([finalCats])
     		writer.writerows(qualified)
 
-	print "Check the file " + csvfile +" for a csv of your qualified workers!"
+	print ("Check the file " + csvfile +" for a csv of your qualified workers!")
 
 
 def overwrite(filename, qualified):
@@ -242,7 +242,7 @@ def overwrite(filename, qualified):
 	newOriginal = "new" + filename
 	data.to_csv(newOriginal)
 
-	print "Check the file " + newOriginal + " for a csv of your updated workers csv."
+	print ("Check the file " + newOriginal + " for a csv of your updated workers csv.")
 
 
 
@@ -251,11 +251,19 @@ def main():
 	#users: a list of all the users that qualified, contains all of their characteristics
 	#categories: a list of all the categories available
 	#catNums: a list of all the category numbers
+
 	global users, qualifications
 
 	#filename = '/Users/ingridyfan/Documents/Stanford/SocLab/sorting project/testingcsv.csv' 
 
 	#filename = 'workersCSV.csv' #[EDIT INPUT FILENAME HERE]
+
+	#ensures that user enters a filename
+	if len(argv) < 2: 
+		print ("Please enter a filename.")
+		return
+
+
 	filename = sys.argv[1]
 
 	categories = [] #all of the categories
@@ -269,13 +277,15 @@ def main():
 		catNum = input("Enter the category number you wish to select OR enter -1 to exit: ")
 		if(catNum == -1): 
 			break
+
 		elif(invalid_input(catNum, len(categories))): 
-			print("\n[ERROR] Please enter a valid category number!")
+			print ("\n[ERROR] Please enter a valid category number!")
 			catNum = 0
 			continue
+			
 		else:
 			catNums.append(catNum)
-			print("\nYou have selected the category: " + categories[catNum])
+			print ("\nYou have selected the category: " + categories[catNum])
 		
 		printCategories(compare)
 
@@ -291,18 +301,18 @@ def main():
 					comp_director(comparType, catNum, categories[catNum])
 					break
 
-		if len(users) == 0: 
+		if not users: 
 			print "No users qualify. Ending program."
 			return
-		print("\nAll qualifications entered so far: ")
-		print(qualifications)
+		print ("\nAll qualifications entered so far: ")
+		print (qualifications)
 
 		catNum = input("enter any number to continue or -1 to exit: ") #ERROR CHECK THAT A NUMBER WAS INPUTTED
 
 
 
 	qualified = wrap_up(len(categories))
-	print(qualified)
+	print (qualified)
 
 	toCSV(categories, catNums, qualified)
 	overwrite(filename, qualified)

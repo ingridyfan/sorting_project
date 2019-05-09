@@ -22,7 +22,7 @@ def readMyFile(filename):
         			categories = row[:]
         		else: users.append(row)
 
-        return users, categories
+	return users, categories
 
 def getCatIndex(categories, category):
 	return categories.index(category)
@@ -259,9 +259,9 @@ def main():
 	#filename = 'workersCSV.csv' #[EDIT INPUT FILENAME HERE]
 
 	#ensures that user enters a filename
-	if len(argv) < 2: 
-		print ("Please enter a filename.")
-		return
+	# if len(argv) < 2: 
+	# 	print ("Please enter a filename.")
+	# 	return
 
 
 	filename = sys.argv[1]
@@ -282,7 +282,7 @@ def main():
 			print ("\n[ERROR] Please enter a valid category number!")
 			catNum = 0
 			continue
-			
+
 		else:
 			catNums.append(catNum)
 			print ("\nYou have selected the category: " + categories[catNum])

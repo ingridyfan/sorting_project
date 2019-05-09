@@ -304,37 +304,57 @@ def sort_fx(data, categories):
 
 	return remove_irrelevant_cols(data, selected, categories)
 
+#update invited column in original dataset
+def update_invited(subset, data, date, filename):
+
+	MIDs = subset['MID'].tolist()
+
+	for idx, row in data.iterrows():
+		if row['MID'] in MIDs:
+			data.ix[idx, 'Invited'] = date
+
+	newOriginal = "new_" + filename
+	data.to_csv(newOriginal)
+
+	print ("\nCheck the file " + newOriginal + " for a csv of your updated workers csv.")
+	
+
 def main():
 
+	
 	#ensures that user enters a filename
-	# if len(argv) != 2: 
-	# 	print ("Please enter only the filename.")
-	# 	return
 
-	#filename = sys.argv[1]
+	# args = sys.argv[1:]
+	# if len(args) != 1:
+	# 	sys.exit('Please enter only the filename.')
 
 	filename = 'newworkersCSV.csv' #[EDIT INPUT FILENAME HERE]
+
+	#filename = args[0]
 
 	data = pd.read_csv(filename)
 	categories = data.columns.values.tolist()
 
-	# new_data = select(13, 'Race', data, [])
-
 	#only newly relevant categories and rows 
-	subset = sort_fx(data, categories)
+	# subset = sort_fx(data, categories)
 	print (subset)
 
 	now = datetime.datetime.now()
 	date = now.strftime("%m-%d-%y")
 
+
+	#update invited 
+	update_invited(subset, data, date.replace('-', '/'), filename)
+
 	#output subset to new csv
 	output_name = 'qualified_workers_' + str(date) + '.csv'
 	subset.to_csv(output_name)
-	print("Qualified Workers CSV exported as the file: " + output_name)
+
+	print("\nQualified Workers CSV exported as the file: " + output_name)
 
 	#TODO: 
 	#update invited column in data
 
-
-
-main() 
+# Python boilerplate
+# if __name__ == '__main__':
+# 	main() 

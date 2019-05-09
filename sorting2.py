@@ -316,32 +316,30 @@ def update_invited(subset, data, date, filename):
 	newOriginal = "new_" + filename
 	data.to_csv(newOriginal)
 
-	print ("\nCheck the file " + newOriginal + " for a csv of your updated workers csv.")
+	print ("\nCheck the file " + newOriginal + " for a CSV of your updated workers CSV.")
 	
 
 def main():
 
+	args = sys.argv[1:]
 	
-	#ensures that user enters a filename
+	# ensures that user enters a filename
+	if len(args) != 1:
+		sys.exit('Please enter only the filename.')
 
-	# args = sys.argv[1:]
-	# if len(args) != 1:
-	# 	sys.exit('Please enter only the filename.')
-
-	filename = 'newworkersCSV.csv' #[EDIT INPUT FILENAME HERE]
-
-	#filename = args[0]
+	# filename = 'newworkersCSV.csv' #[EDIT INPUT FILENAME HERE]
+	filename = args[0]
 
 	data = pd.read_csv(filename)
 	categories = data.columns.values.tolist()
 
-	#only newly relevant categories and rows 
-	# subset = sort_fx(data, categories)
+	#only relevant categories and rows that fit all qualifications 
+	subset = sort_fx(data, categories)
 	print (subset)
 
+	#current date
 	now = datetime.datetime.now()
 	date = now.strftime("%m-%d-%y")
-
 
 	#update invited 
 	update_invited(subset, data, date.replace('-', '/'), filename)
@@ -352,9 +350,6 @@ def main():
 
 	print("\nQualified Workers CSV exported as the file: " + output_name)
 
-	#TODO: 
-	#update invited column in data
-
 # Python boilerplate
-# if __name__ == '__main__':
-# 	main() 
+if __name__ == '__main__':
+	main() 

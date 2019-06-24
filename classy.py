@@ -111,24 +111,26 @@ def generalHelpButtonDialogBox():
 		"First, select a CSV of the MTurk workers and their traits.\nNext, add constraints that you want satisfied.\n"\
 		"Finally, generate and save a new CSV of the desired workers.")
 
+
+'''checks compatibility of each value input with the comparison type after the generate button is pressed'''
 def cat_compatibility(lineItem):
 	cat = lineItem.categoryDropdownVal.get()
 	catType = lineItem.comparisonTypeDropdownVal.get()
 	val = lineItem.valueEntry.get()
 	if catType == 'Date':
 		try:
-			date = time.strptime(val, "%m/%d/%y")
+			date = time.strptime(val, "%m/%d/%Y")
 		except ValueError:
-			tk.messagebox.showinfo('Invalid Value', 'Invalid date value for the ' + cat + ' category.\n\n Please format all dates in mm/dd/yy. Ex: 05/06/18')
+			tk.messagebox.showinfo('Invalid Value', 'Invalid date value for the ' + cat + ' category.\n\n Please format all dates in mm/dd/yy. Ex: 05/06/2018')
 			return False
 		except TypeError:
-			tk.messagebox.showinfo('Invalid Value', 'Invalid date value for the ' + cat + ' category.\n\n Please format all dates in mm/dd/yy. Ex: 05/06/18')
+			tk.messagebox.showinfo('Invalid Value', 'Invalid date value for the ' + cat + ' category.\n\n Please format all dates in mm/dd/yy. Ex: 05/06/2018')
 			return False
 	elif catType == 'Numerical':
 		try:
 			num = float(val)
 		except ValueError:
-			tk.messagebox.showinfo('Invalid Value', 'Invalid numerical value for the ' + cat + ' category.\n\nPlease enter a numeric value. Ex: 56.18')
+			tk.messagebox.showinfo('Invalid Value', 'Invalid numerical value for the ' + cat + ' category.\n\nPlease enter a numeric value. Ex: 56.2')
 			return False
 
 	return True
@@ -151,6 +153,7 @@ def generate():
 	for lineItem in root.mainWindowFrame.entries:
 		print (type(lineItem.valueEntry.get()), lineItem.valueEntry.get())
 		if not cat_compatibility(lineItem):
+			#TODO: clear valueEntry box
 			return
 		inputList.append((lineItem.categoryDropdownVal.get(), lineItem.comparisonTypeDropdownVal.get(), lineItem.comparisonDropdownVal.get(), str(lineItem.valueEntry.get())))
 	print(inputList)

@@ -12,8 +12,6 @@ DATECOMP = "Date"
 TEXTCOMP = "Text"
 
 ''' 
-The following code is for dropping all irrelevant rows in the CSV
-
 Call the function get_filtered_dataframe
 
 Input: 
@@ -79,28 +77,28 @@ def comp_text(entry, data):
 def comp_date(entry, data):
 
 	cat = entry[0]
-	val = time.strptime(entry[-1], "%m/%d/%y")
+	val = time.strptime(entry[-1], "%m/%d/%Y")
 	operator = entry[2]
 	to_drop = []
 
 	if operator == '=':
 		for index, row in data.iterrows():
-			cur = time.strptime(row[cat], "%m/%d/%y")
+			cur = time.strptime(row[cat], "%m/%d/%Y")
 			if cur != val or cur != cur:
 				to_drop.append(index)
 	elif operator == '!=':
 		for index, row in data.iterrows():
-			cur = time.strptime(row[cat], "%m/%d/%y")
+			cur = time.strptime(row[cat], "%m/%d/%Y")
 			if cur == val or cur != cur:
 				to_drop.append(index)
 	elif operator == '>':
 		for index, row in data.iterrows():
-			cur = time.strptime(row[cat], "%m/%d/%y")
+			cur = time.strptime(row[cat], "%m/%d/%Y")
 			if cur <= val or cur != cur:
 				to_drop.append(index)
 	elif operator == '<':
 		for index, row in data.iterrows():
-			cur = time.strptime(row[cat], "%m/%d/%y")
+			cur = time.strptime(row[cat], "%m/%d/%Y")
 			if cur >= val or cur != cur:
 				to_drop.append(index)
 
@@ -123,7 +121,8 @@ def comp_director(entry, data):
 
 #call to drop 
 def get_filtered_dataframe(data, entries):
-	
+
+	'''The following code is for dropping all irrelevant rows in the CSV'''
 	def remove_irrelevant_cols(data, selected, categories):
 		always_relevant = set(['Invited', 'MID', 'MTURK_ID'])
 
@@ -148,7 +147,7 @@ def get_filtered_dataframe(data, entries):
 	print (subset.head(3))
 	return subset
 
-
+'''call to test backend code'''
 def test():
 	data = pd.read_csv('newworkersCSV.csv')
 	test = get_filtered_dataframe(data, [('ANES_POL', 'Numerical', '=', '3'), ('Q32_Browser', 'Text', '=', 'Chrome'), ('Invited', 'Date', '>', '02/26/18')])
@@ -156,7 +155,7 @@ def test():
 '''updates invited column in the original csv'''
 def update_invited(subset, data, filename):
 	now = datetime.datetime.now()
-	date = now.strftime("%m-%d-%y").replace('-', '/')
+	date = now.strftime("%m-%d-%Y").replace('-', '/')
 
 	MIDs = subset['MID'].tolist()
 

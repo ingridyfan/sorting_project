@@ -195,22 +195,29 @@ def generate(subsetSize):
 	# 	# sw.grab_release();
 
 	# export(subsetData)
-	pathToSave = filedialog.asksaveasfile(mode='w', defaultextension=".csv", title = "Save new CSV", initialdir = '/',
-		filetypes = (("csv files","*.csv"),("all files","*.*")), initialfile = csvName.rsplit('/', 1)[-1].split('.')[0] + '-filtered')
-	print ('path to save', pathToSave)
+	try:
+		pathToSave = filedialog.asksaveasfile(mode='w', defaultextension=".csv", title = "Save new CSV", initialdir = '/',
+			filetypes = (("csv files","*.csv"),("all files","*.*")), initialfile = csvName.rsplit('/', 1)[-1].split('.')[0] + '-filtered')
+	except PermissionError:
+		tk.messagebox.showinfo('Permission Error', 'You don\'t have permission to save this file in that location. Please re-generate and try a different save location.')
+		return ''
 
 	if pathToSave:
 		subsetData.to_csv(pathToSave)
 		root.loadingLabel['text'] = ("Processed! Generated subset of size " + str(subsetSize) + maxBool + ".")
+		return pathToSave.name
 		# os.startfile(pathToSave.name)
 	else:
 		root.loadingLabel['text'] = ("No file saved. Please re-generate.")
+		return ''
+
+
 def resetAll():
 	global categories
 	global csvName
 	global data
 
-	root.fileSelectionFrame.fileSelectionText.config(text="File name: ")
+	root.fileSelectionFrame.fileSelectionText.config(text="Import from: ")
 	root.mainWindowFrame.valueEntry.delete(0, tk.END)
 	root.loadingLabel['text'] = ("")
 
@@ -235,7 +242,7 @@ def getCSVName():
 	global data
 
 	csvName = filedialog.askopenfilename(initialdir = '/',title = "Select CSV",filetypes = (("csv files","*.csv"),("all files","*.*")))
-	root.fileSelectionFrame.fileSelectionText.config(text="File name: " + csvName)
+	root.fileSelectionFrame.fileSelectionText.config(text="Import from: " + csvName)
 
 	try:
 		data = pd.read_csv(csvName)
@@ -280,7 +287,7 @@ class Root(tk.Tk):
 		self.title("MTurk Workers Filtering Tool")
 		self.minsize(500, 350)
 
-		for row in range(6):
+		for row in range(7):
 			self.grid_rowconfigure(row, weight=1)
 
 		## Make help button
@@ -310,7 +317,7 @@ class Root(tk.Tk):
 		# self.checkbox.grid(row=6, column=3, sticky='ns')
 
 		## Names and credits
-		tk.Label(text="Ingrid Fan & Kadar Qian. 2019.", bg=backgroundColor).grid(row=6, column=1, sticky='s')
+		tk.Label(text="Ingrid Fan & Kadar Qian. 2019.", bg=backgroundColor).grid(row=7, column=1, sticky='s')
 
 	# def generateAllSelected(self):
 	# 	# if (self.checkboxVal.get() == 1):
@@ -333,11 +340,12 @@ class FileSelectionFrame(tk.Frame):
 
 		self.fileSelectionLabel = tk.Label(self, text="Please select a CSV file:", bg=backgroundColor)
 		self.fileSelectionButton = tk.Button(self, text="Select CSV", command=getCSVName, bg="black")
-		self.fileSelectionText = tk.Label(self, text="File name:", bg="light gray", width=40, height=1)
+		self.fileSelectionText = tk.Label(self, text="Import from:", bg="light gray", width=40, height=1)
 
 		self.fileSelectionLabel.grid(row=0, column=0, sticky="new",)
 		self.fileSelectionButton.grid(row=0, column=1, sticky='new')
 		self.fileSelectionText.grid(row=1, column=0, sticky='we', columnspan=2)
+
 
 class MainWindowFrame(tk.Frame):
 	def __init__(self, parent):
@@ -392,11 +400,14 @@ class ButtonsFrame(tk.Frame):
 
 		for i in range(4):
 			self.grid_columnconfigure(i, weight=1)
+		for i in range(2):
+			self.grid_rowconfigure(i, weight=1)
 
 		self.resetButton = tk.Button(self, text="Reset All", command=self.resetAll)
 		self.removeButton = tk.Button(self, text = "Remove Last Category", command = removeLastCat)
 		self.addButton = tk.Button(self, text = "Add Another Category", command = self.addNewCat)
 		self.generateButton = tk.Button(self, text="Generate", command=self.popup)
+		self.fileExportText = tk.Label(self, text="Export to:", bg="light gray", width=40, height=1)
 		# self.exportButton = tk.Button(self, text = "Export Subset", command=lambda : generate(int(self.entryValue())))
 		# self.exportButton["state"] = "disabled"
 
@@ -406,10 +417,13 @@ class ButtonsFrame(tk.Frame):
 		self.addButton.grid(row=0,column=2, sticky='nsew')
 		self.generateButton.grid(row=0, column=3, sticky='nsew')
 		# self.exportButton.grid(row=0, column =4, sticky='nsew')
+		self.fileExportText.grid(row=1, column=0, sticky='we', columnspan=4)
+		
 
 	def resetAll(self):
 		resetAll()
 		self.removeButton["state"] = "disabled"
+		self.fileExportText.config(text="Export to:")
 
 	def addNewCat(self):
 		if addNewCat():
@@ -422,7 +436,8 @@ class ButtonsFrame(tk.Frame):
 		self.generateButton["state"] = "normal"
 		# self.exportButton["state"] = "normal"
 		# root.loadingLabel['text'] = ("Generating random subset of size " + self.entryValue())
-		generate(int(self.entryValue()))
+		exportPath = generate(int(self.entryValue()))
+		self.fileExportText.config(text="Export to: " + exportPath)
 
 	def entryValue(self):
 		return self.w.value

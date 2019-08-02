@@ -31,26 +31,17 @@ def comp_num(entry, data):
 	to_drop = []
 
 	if operator == '=':
-		for index, row in data.iterrows():
-			cur = row[cat]
-			if float(cur) != val or cur != cur:
-				to_drop.append(index)
+		# for index, row in data.iterrows():
+		# 	cur = row[cat]
+		# 	if float(cur) != val or cur != cur:
+		# 		to_drop.append(index)
+		to_drop = [index for index, row in data.iterrows() if float(row[cat]) != val or row[cat] != row[cat]]
 	elif operator == '!=':
-		for index, row in data.iterrows():
-			cur = row[cat]
-			if float(cur) == val or cur != cur:
-				to_drop.append(index)
+		to_drop = [index for index, row in data.iterrows() if float(row[cat]) == val or row[cat] != row[cat]]
 	elif operator == '>':
-		for index, row in data.iterrows():
-			cur = row[cat]
-			if float(cur) <= val or cur != cur:
-				to_drop.append(index)
+		to_drop = [index for index, row in data.iterrows() if float(row[cat]) <= val or row[cat] != row[cat]]
 	elif operator == '<':
-		for index, row in data.iterrows():
-			cur = row[cat]
-			if float(cur) >= val or cur != cur:
-				to_drop.append(index)
-
+		to_drop = [index for index, row in data.iterrows() if float(row[cat]) >= val or row[cat] != row[cat]]
 	return data.drop(to_drop)
 
 #compare string values
@@ -77,28 +68,28 @@ def comp_text(entry, data):
 def comp_date(entry, data):
 
 	cat = entry[0]
-	val = time.strptime(entry[-1], "%m/%d/%Y")
+	val = time.strptime(entry[-1], "%m/%d/%y")
 	operator = entry[2]
 	to_drop = []
 
 	if operator == '=':
 		for index, row in data.iterrows():
-			cur = time.strptime(row[cat], "%m/%d/%Y")
+			cur = time.strptime(row[cat], "%m/%d/%y")
 			if cur != val or cur != cur:
 				to_drop.append(index)
 	elif operator == '!=':
 		for index, row in data.iterrows():
-			cur = time.strptime(row[cat], "%m/%d/%Y")
+			cur = time.strptime(row[cat], "%m/%d/%y")
 			if cur == val or cur != cur:
 				to_drop.append(index)
 	elif operator == '>':
 		for index, row in data.iterrows():
-			cur = time.strptime(row[cat], "%m/%d/%Y")
+			cur = time.strptime(row[cat], "%m/%d/%y")
 			if cur <= val or cur != cur:
 				to_drop.append(index)
 	elif operator == '<':
 		for index, row in data.iterrows():
-			cur = time.strptime(row[cat], "%m/%d/%Y")
+			cur = time.strptime(row[cat], "%m/%d/%y")
 			if cur >= val or cur != cur:
 				to_drop.append(index)
 
@@ -108,7 +99,7 @@ def comp_date(entry, data):
 def comp_director(entry, data):
 	cur_comp = entry[1]
 
-	print ("comp type: " + cur_comp)
+	# print ("comp type: " + cur_comp)
 
 	if(cur_comp == NUMCOMP): 
 		return comp_num(entry, data)
@@ -155,7 +146,7 @@ def test():
 '''updates invited column in the original csv'''
 def update_invited(subset, data, filename):
 	now = datetime.datetime.now()
-	date = now.strftime("%m-%d-%Y").replace('-', '/')
+	date = now.strftime("%m-%d-%y").replace('-', '/')
 
 	MIDs = subset['MID'].tolist()
 

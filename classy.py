@@ -38,7 +38,7 @@ def addNewCat():
 	
 	if not categories:
 		showSelectCSVDialogBox("Add Another Category")
-		return
+		return False
 
 	step = len(root.mainWindowFrame.entries)
 
@@ -62,6 +62,8 @@ def addNewCat():
 
 	root.mainWindowFrame.entries.append(LineItem(catVar, catMenu, compTypeVar, compVar, valEntry))
 
+	return True
+
 def removeLastCat():
 	global categories
 	global csvName
@@ -81,7 +83,7 @@ def removeLastCat():
 		widget.destroy()
 
 	root.mainWindowFrame.entries.pop()
-	print(len(root.mainWindowFrame.entries))
+	# print(len(root.mainWindowFrame.entries))
 
 def showRemoveLastCatDialogBox():
 	tk.messagebox.showinfo("Info: Unable to Remove Category", "You must have at least 1 category.")
@@ -109,7 +111,7 @@ def generalHelpButtonDialogBox():
 	tk.messagebox.showinfo("General Help",
 		"The following program enables you to filter out a subset of MTurk workers who only have particular traits satisfied.\n\n"\
 		"First, select a CSV of the MTurk workers and their traits.\nNext, add constraints that you want satisfied.\n"\
-		"Finally, generate and save a new CSV of the desired workers.")
+		"Finally, generate and save a new CSV of the desired size of worker information.")
 
 
 '''checks compatibility of each value input with the comparison type after the generate button is pressed'''
@@ -119,12 +121,12 @@ def cat_compatibility(lineItem):
 	val = lineItem.valueEntry.get()
 	if catType == 'Date':
 		try:
-			date = time.strptime(val, "%m/%d/%Y")
+			date = time.strptime(val, "%m/%d/%y")
 		except ValueError:
-			tk.messagebox.showinfo('Invalid Value', 'Invalid date value for the ' + cat + ' category.\n\n Please format all dates in mm/dd/yy. Ex: 05/06/2018')
+			tk.messagebox.showinfo('Invalid Value', 'Invalid date value for the ' + cat + ' category.\n\n Please format all dates in mm/dd/yy. Ex: 05/06/18')
 			return False
 		except TypeError:
-			tk.messagebox.showinfo('Invalid Value', 'Invalid date value for the ' + cat + ' category.\n\n Please format all dates in mm/dd/yy. Ex: 05/06/2018')
+			tk.messagebox.showinfo('Invalid Value', 'Invalid date value for the ' + cat + ' category.\n\n Please format all dates in mm/dd/yy. Ex: 05/06/18')
 			return False
 	elif catType == 'Numerical':
 		try:
@@ -135,7 +137,7 @@ def cat_compatibility(lineItem):
 
 	return True
 
-def generate():
+def generate(subsetSize):
 	global categories
 	global csvName
 	global data
@@ -147,39 +149,62 @@ def generate():
 		showSelectCSVDialogBox("Generate")
 		return
 
-	root.loadingLabel['text'] = ("Processing...")
-
 	inputList = []
 	for lineItem in root.mainWindowFrame.entries:
-		print (type(lineItem.valueEntry.get()), lineItem.valueEntry.get())
+
+		''' if the value input in any column is incompatible with the category type'''
 		if not cat_compatibility(lineItem):
 			#TODO: clear valueEntry box
 			return
 		inputList.append((lineItem.categoryDropdownVal.get(), lineItem.comparisonTypeDropdownVal.get(), lineItem.comparisonDropdownVal.get(), str(lineItem.valueEntry.get())))
-	print(inputList)
+	print('inputList', inputList)
 
 
 	# TODO: try catch
+
+	''' pull a dataframe of all qualifying workers '''
 	filteredData = sorting.get_filtered_dataframe(data, inputList)
-	root.loadingLabel['text'] = ("Processed!")
 
 	numRows = len(filteredData.index)
-	print(numRows)
+	maxBool = ''
+	print('numRows', numRows)
 
-	if (root.generateAllSelected()):
-		print ("Selected")
+	if subsetSize < 0 or numRows < subsetSize:
+		subsetSize = numRows
+		maxBool = ' (max)'
 
-	else:
-		print("Not selected")
-		sw = SubsetWindow(str(numRows))
-		sw.grab_set();
-		sw.mainloop();
-		sw.grab_release();
 
+	subsetData = sorting.random_selection(filteredData, subsetSize)
+
+
+
+	# ''' if the generateAll checkbox is selected '''
+	# if (root.generateAllSelected()):
+	# 	print ("Selected")
+
+	# else:
+	# 	print("Not selected")
+	# 	# num = SubsetBonus()
+
+	# 	# subsetSize = 1
+	# 	# subsetData = sorting.random_selection(filteredData, subsetSize)
+
+	# 	# sw = SubsetWindow(str(numRows))
+	# 	# sw.grab_set();
+	# 	# sw.mainloop();
+	# 	# sw.grab_release();
+
+	# export(subsetData)
 	pathToSave = filedialog.asksaveasfile(mode='w', defaultextension=".csv", title = "Save new CSV", initialdir = '/',
-		filetypes = (("csv files","*.csv"),("all files","*.*")), initialfile = csvName.rsplit('/', 1)[-1].split('.')[0] + '-sorted')
-	filteredData.to_csv(pathToSave)
+		filetypes = (("csv files","*.csv"),("all files","*.*")), initialfile = csvName.rsplit('/', 1)[-1].split('.')[0] + '-filtered')
+	print ('path to save', pathToSave)
 
+	if pathToSave:
+		subsetData.to_csv(pathToSave)
+		root.loadingLabel['text'] = ("Processed! Generated subset of size " + str(subsetSize) + maxBool + ".")
+		# os.startfile(pathToSave.name)
+	else:
+		root.loadingLabel['text'] = ("No file saved. Please re-generate.")
 def resetAll():
 	global categories
 	global csvName
@@ -255,7 +280,7 @@ class Root(tk.Tk):
 		self.title("MTurk Workers Filtering Tool")
 		self.minsize(500, 350)
 
-		for row in range(7):
+		for row in range(6):
 			self.grid_rowconfigure(row, weight=1)
 
 		## Make help button
@@ -278,21 +303,22 @@ class Root(tk.Tk):
 		self.buttonsFrame.grid(row=5, column=1, sticky='new')
 
 		## Make checkbox
-		self.checkboxVal = IntVar()
-		self.checkboxVal.set(0)
-		self.checkbox = Checkbutton(self.buttonsFrame, variable = self.checkboxVal, onvalue = 1, offvalue = 0, text = "Download All")
-		self.checkbox.configure(background=backgroundColor)
-		self.checkbox.grid(row=6, column=3, sticky='ns')
+		# self.checkboxVal = IntVar()
+		# self.checkboxVal.set(0)
+		# self.checkbox = Checkbutton(self.buttonsFrame, variable = self.checkboxVal, onvalue = 1, offvalue = 0, text = "Download All")
+		# self.checkbox.configure(background=backgroundColor)
+		# self.checkbox.grid(row=6, column=3, sticky='ns')
 
 		## Names and credits
-		tk.Label(text="Ingrid Fan & Kadar Qian. 2019.", bg=backgroundColor).grid(row=7, column=1, sticky='s')
+		tk.Label(text="Ingrid Fan & Kadar Qian. 2019.", bg=backgroundColor).grid(row=6, column=1, sticky='s')
 
-	def generateAllSelected(self):
-		if (self.checkboxVal.get() == 1):
-			print ("True")
-			return True
-		print("False")
-		return False
+	# def generateAllSelected(self):
+	# 	# if (self.checkboxVal.get() == 1):
+	# 	# 	print ("True")
+	# 	# 	return True
+	# 	# print("False")
+	# 	# return False
+	# 	return self.checkboxVal.get()
 
 class FileSelectionFrame(tk.Frame):
 	def __init__(self, parent):
@@ -359,6 +385,7 @@ class MainWindowFrame(tk.Frame):
 
 class ButtonsFrame(tk.Frame):
 	def __init__(self, parent):
+		self.parent = parent
 		tk.Frame.__init__(self, parent)
 
 		self.configure(background=backgroundColor)
@@ -366,75 +393,80 @@ class ButtonsFrame(tk.Frame):
 		for i in range(4):
 			self.grid_columnconfigure(i, weight=1)
 
-		self.resetButton = tk.Button(self, text="Reset All", command=resetAll)
+		self.resetButton = tk.Button(self, text="Reset All", command=self.resetAll)
 		self.removeButton = tk.Button(self, text = "Remove Last Category", command = removeLastCat)
-		self.addButton = tk.Button(self, text = "Add Another Category", command = addNewCat)
-		self.generateButton = tk.Button(self, text="Generate", command=generate)
+		self.addButton = tk.Button(self, text = "Add Another Category", command = self.addNewCat)
+		self.generateButton = tk.Button(self, text="Generate", command=self.popup)
+		# self.exportButton = tk.Button(self, text = "Export Subset", command=lambda : generate(int(self.entryValue())))
+		# self.exportButton["state"] = "disabled"
 
 		# Print out to buttons window frame
 		self.resetButton.grid(row=0, column=0, sticky='nsew')
 		self.removeButton.grid(row=0,column=1, sticky='nsew')
 		self.addButton.grid(row=0,column=2, sticky='nsew')
 		self.generateButton.grid(row=0, column=3, sticky='nsew')
+		# self.exportButton.grid(row=0, column =4, sticky='nsew')
 
-## Class definition for subset window generation
+	def resetAll(self):
+		resetAll()
+		self.removeButton["state"] = "disabled"
 
-class SubsetWindow(tk.Tk):
-	#def set
+	def addNewCat(self):
+		if addNewCat():
+			self.removeButton["state"] = "normal"
 
-	def __init__(self, *args, **kwargs):
-		tk.Tk.__init__(self, *args, **kwargs)
+	def popup(self):
+		self.w=popupWindow(self.master)
+		self.generateButton["state"] = "disabled" 
+		self.master.wait_window(self.w.top)
+		self.generateButton["state"] = "normal"
+		# self.exportButton["state"] = "normal"
+		# root.loadingLabel['text'] = ("Generating random subset of size " + self.entryValue())
+		generate(int(self.entryValue()))
 
-		windowWidth = 500
-		windowHeight = 500
+	def entryValue(self):
+		return self.w.value
 
-		self.geometry(str(windowWidth) + "x" + str(windowHeight))
-		self.grid_columnconfigure(0, weight=1)
-		self.grid_columnconfigure(1, weight=6)
-		self.grid_columnconfigure(2, weight=1)
-		self.configure(background=backgroundColor)
-		self.title("Download Subset of Workers")
-		self.minsize(500, 350)
+class popupWindow(object):
+	def __init__(self,master):
+		top=self.top=Toplevel(master)
+		self.l=Label(top,text="Please input the size of your desired random subset of workers.\nIf you would like to export the complete set of qualified workers, please enter a negative value.")
+		self.l.pack()
+		self.e=Entry(top)
+		self.e.pack()
+		self.b=Button(top,text='Enter',command=self.cleanup)
+		self.b.pack()
 
-		for row in range(7):
-			self.grid_rowconfigure(row, weight=1)
-
-		# ## Make help button
-		# self.generalHelpButton = tk.Button(text="?", font=("bold"), command=generalHelpButtonDialogBox).grid(row=0, column=2, sticky='ne')
-
-
-
-		# ## Make file selection frame
-		# self.fileSelectionFrame = FileSelectionFrame(self)
-		# self.fileSelectionFrame.grid(row=1, column=1, sticky="new")
-
-		# ## Make main window frame
-		# self.mainWindowFrame = MainWindowFrame(self)
-		# self.mainWindowFrame.grid(row=3, column=1, sticky='nsew')
-
-		# ## Loading label
-		# self.loadingLabel = tk.Label(text="", bg=backgroundColor, font=("Helvetica", 20, "italic"))
-		# self.loadingLabel.grid(row=4,column=1,sticky='se')
-
-		# ## Make buttons frame
-		# self.buttonsFrame = ButtonsFrame(self)
-		# self.buttonsFrame.grid(row=5, column=1, sticky='new')
-
-		# ## Make checkbox
-		# self.checkboxVal = IntVar()
-		# self.checkboxVal.set(0)
-		# self.checkbox = Checkbutton(self.buttonsFrame, variable = self.checkboxVal, onvalue = 1, offvalue = 0, text = "Download All")
-		# self.checkbox.configure(background=backgroundColor)
-		# self.checkbox.grid(row=6, column=3, sticky='ns')
-
-		# ## Names and credits
-		# tk.Label(text="Ingrid Fan & Kadar Qian. 2019.", bg=backgroundColor).grid(row=7, column=1, sticky='s')
+	def cleanup(self):
+		self.value=self.e.get()
+		self.top.destroy()
 
 
 
 
+''' Class definition for subset window generation '''
+# class SubsetWindow(tk.Tk):
 
-##
+# 	def __init__(self, *args, **kwargs):
+# 		tk.Tk.__init__(self, *args, **kwargs)
+
+# 		windowWidth = 500
+# 		windowHeight = 500
+
+# 		self.geometry(str(windowWidth) + "x" + str(windowHeight))
+# 		self.grid_columnconfigure(0, weight=1)
+# 		self.grid_columnconfigure(1, weight=6)
+# 		self.grid_columnconfigure(2, weight=1)
+# 		self.configure(background=backgroundColor)
+# 		self.title("Download Subset of Workers")
+# 		self.minsize(500, 350)
+
+# 		for row in range(7):
+# 			self.grid_rowconfigure(row, weight=1)
+
+# 		self.done = tk.Button(self, text="done", command=self.cleanup).grid(row=0, column=0, sticky='nsw')
+
+
 
 root = Root()
 root.mainloop()

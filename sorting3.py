@@ -145,8 +145,13 @@ def test():
 
 '''updates invited column in the original csv'''
 def update_invited(subset, data, filename):
+	if filename.endswith('.csv'):
+		filename = filename[0:-4]
+		print (filename)
+
+
 	now = datetime.datetime.now()
-	date = now.strftime("%m-%d-%y").replace('-', '/')
+	date = now.strftime("%m-%d-%y")
 
 	MIDs = subset['MID'].tolist()
 
@@ -154,7 +159,8 @@ def update_invited(subset, data, filename):
 		if row['MID'] in MIDs:
 			data.ix[idx, 'Invited'] = date
 
-	newOriginal = filename + "_" + str(date)
+	newOriginal = filename + "_" + str(date) + '.csv'
+	print (newOriginal)
 	data.to_csv(newOriginal)
 
 '''takes in num of workers that the user would like to select and creates a 
@@ -164,4 +170,4 @@ def random_selection(subset, num):
 		return subset.sample(n = num, random_state = 1)
 	return subset 
 
-test()
+# test()

@@ -203,6 +203,7 @@ def generate(subsetSize):
 		return ''
 
 	if pathToSave:
+		sorting.update_invited(subsetData, data, csvName)
 		subsetData.to_csv(pathToSave)
 		root.loadingLabel['text'] = ("Processed! Generated subset of size " + str(subsetSize) + maxBool + ".")
 		return pathToSave.name

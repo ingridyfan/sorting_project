@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from tkinter import ttk
 from tkinter import *
+# from PIL import ImageTK, Image
 
 import os
 import csv
@@ -485,6 +486,9 @@ class popupWindow(object):
 
 
 root = Root()
+img = tk.Image("photo", file = "./robb.png")
+root.iconphoto(True, img)
+root.tk.call('wm', 'iconphoto', root._w, img)
 root.mainloop()
 
 
